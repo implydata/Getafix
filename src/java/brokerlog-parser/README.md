@@ -32,25 +32,12 @@ Use the below spec to ingest in to druid.  change the `baseDir` to the input fol
       "type": "index_parallel",
       "inputSource": {
         "type": "local",
-        "baseDir": "<dir>",
-        "filter": "*"
+        "baseDir": <dir>,
+        "filter": "*.csv"
       },
       "inputFormat": {
         "type": "csv",
-        "findColumnsFromHeader": false,
-        "columns": [
-          "queryid",
-          "sqlqueryid",
-          "implyDataCube",
-          "implyFeature",
-          "implyUser",
-          "implyView",
-          "priority",
-          "recency",
-          "duration",
-          "filterseq",
-          "filter"
-        ]
+        "findColumnsFromHeader": true
       }
     },
     "tuningConfig": {
@@ -60,23 +47,26 @@ Use the below spec to ingest in to druid.  change the `baseDir` to the input fol
       }
     },
     "dataSchema": {
-      "dataSource": "TGoutput",
+      "dataSource": "querypattern",
       "timestampSpec": {
-        "column": "queryid",
+        "column": "eventtime",
         "format": "auto"
       },
       "dimensionsSpec": {
         "dimensions": [
+          "querytype",
+          "datasource",
+          "queryid",
           "sqlqueryid",
           "implyDataCube",
           "implyFeature",
           "implyUser",
+          "implyView",
+          "priority",
           {
             "type": "long",
-            "name": "implyView"
+            "name": "recency"
           },
-          "priority",
-          "recency",
           {
             "type": "long",
             "name": "duration"
@@ -85,10 +75,9 @@ Use the below spec to ingest in to druid.  change the `baseDir` to the input fol
             "type": "long",
             "name": "filterseq"
           },
-          {
-            "type": "long",
-            "name": "filter"
-          }
+          "filter",
+          "grouping",
+          "clusterId"
         ]
       },
       "granularitySpec": {
