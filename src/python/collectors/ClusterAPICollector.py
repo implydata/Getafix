@@ -171,7 +171,7 @@ def getWorkers(options):
 
 
 def collectAPIData(options):
-    outputDir = '/var/tmp/' + options.ClusterName + '_' + datetime.date.today().isoformat()
+    outputDir = options.ClusterName + '_' + datetime.date.today().isoformat()
     if not os.path.exists(outputDir):
         os.makedirs(outputDir)
     with open(outputDir + "/compaction.json", "w") as outfile:  
