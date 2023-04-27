@@ -16,6 +16,8 @@ requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 def checkOptions():
     parser = argparse.ArgumentParser(description = 'Getafix - Cluster API Info Collector')
     parser.add_argument('Router', action='store', type=str, help='Router URL with protocol and port')
+    parser.add_argument('ClusterName', action='store', type=str, help='Cluster Name')
+    parser.add_argument('-z', '--zipfile', action='store_true', dest='zipfile', help='Generate zipfile')
     parser.add_argument('-k', '--kerberos', action='store_true', dest='kerberos', help='''
                         Enable kerberos authentication (must already have valid ticket''')
     parser.add_argument('-u', '--user', action='store', type=str, dest='user', help='Username')
@@ -166,24 +168,60 @@ def getLookups(options):
 def getWorkers(options):
     URL = '/druid/indexer/v1/workers'
     return getRequest(URL, options)
-    
-def collectAPIData(options):
-        json.dumps(getSegments(options))
-        json.dumps(getCompaction(options))
-        json.dumps(getCompactionStatus(options))
-        json.dumps(getSupervisors(options))
-        json.dumps(getTasks(options))
-        json.dumps(getRetention(options))
-        json.dumps(getDatasources(options))
-        json.dumps(getCoordinatorSettings(options))
-        json.dumps(getOverlordSettings(options))
-        json.dumps(getServers(options))
-        json.dumps(getLookups(options))
-        json.dumps(getWorkers(options))
 
+
+def collectAPIData(options):
+    outputDir = '/var/tmp/' + options.ClusterName + '_' + datetime.date.today().isoformat()
+    if not os.path.exists(outputDir):
+        os.makedirs(outputDir)
+    with open(outputDir + "/compaction.json", "w") as outfile:  
+        json.dump(getCompaction(options), outfile, indent=2)
+    with open(outputDir + "/compactionStatus.json", "w") as outfile:  
+        json.dump(getCompactionStatus(options), outfile, indent=2)
+    with open(outputDir + "/supervisors.json", "w") as outfile:
+        json.dump(getSupervisors(options), outfile, indent=2)
+    with open(outputDir + "/tasks.json", "w") as outfile:
+        json.dump(getTasks(options), outfile, indent=2)
+    with open(outputDir + "/retention.json", "w") as outfile:
+        json.dump(getRetention(options), outfile, indent=2)
+    with open(outputDir + "/datasources.json", "w") as outfile:
+        json.dump(getDatasources(options), outfile, indent=2)
+    with open(outputDir + "/coordinatorDynamic.json", "w") as outfile:
+        json.dump(getCoordinatorSettings(options), outfile, indent=2)
+    with open(outputDir + "/overlordDynamic.json", "w") as outfile:
+        json.dump(getOverlordSettings(options), outfile, indent=2)
+    with open(outputDir + "/servers.json", "w") as outfile:
+        json.dump(getServers(options), outfile, indent=2)
+    with open(outputDir + "/segments.json", "w") as outfile:
+        json.dump(getSegments(options), outfile, indent=2)
+    with open(outputDir + "/lookups.json", "w") as outfile:
+        json.dump(getLookups(options), outfile, indent=2)
+    with open(outputDir + "/workers.json", "w") as outfile:
+        json.dump(getWorkers(options), outfile, indent=2)
+
+def collectAPIDataZip(options):
+    fileDetails = options.ClusterName + '_' + datetime.date.today().isoformat()
+    with zipfile.ZipFile(fileDetails + '.zip', 'w', zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(os.path.join(fileDetails, 'compaction.json'), json.dumps(getCompaction(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'compactionStatus.json'), json.dumps(getCompactionStatus(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'supervisors.json'), json.dumps(getSupervisors(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'tasks.json'), json.dumps(getTasks(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'retention.json'), json.dumps(getRetention(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'datasources.json'), json.dumps(getDatasources(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'coordinatorDynamic.json'), json.dumps(getCoordinatorSettings(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'overlordDynamic.json'), json.dumps(getOverlordSettings(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'servers.json'), json.dumps(getServers(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'segments.json'), json.dumps(getSegments(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'lookups.json'), json.dumps(getLookups(options), indent=2))
+        archive.writestr(os.path.join(fileDetails, 'workers.json'), json.dumps(getWorkers(options), indent=2))     
+    print("Zipfile", fileDetails + ".zip created successfully")   
+        
 def main():
     options = checkOptions()
-    collectAPIData(options)
+    if options.zipfile:
+        collectAPIDataZip(options)
+    else:
+        collectAPIData(options)
 
 
 if __name__ == '__main__':
