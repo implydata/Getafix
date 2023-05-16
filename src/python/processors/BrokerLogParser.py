@@ -22,7 +22,7 @@ def main():
     with open(options.inputFile, "r") as inFile:
         with open(options.outputFile, "w") as outFile:
             writer = csv.writer(outFile)
-            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "query"])
+            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "implyUser", "query"])
             tsv_file = csv.reader(inFile, delimiter = "\t")
             for inLine in tsv_file:
                 try:
@@ -90,8 +90,14 @@ def main():
                 queryTime = queryResult['query/time']
                 queryBytes = queryResult['query/bytes']
                 success = queryResult['success']
+                jsonquery = json.dumps(query)
+                data = json.loads(jsonquery)
+                try:
+                    implyUser = data["context"]["implyUser"]
+                except KeyError:
+                    implyUser = ''
                 #outLine = [ logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, str(filterList), json.dumps(query)]
-                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), json.dumps(query)])
+                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), implyUser, json.dumps(query)])
 
 if __name__ == '__main__':
     main()   
