@@ -94,7 +94,7 @@ def main():
                 data = json.loads(jsonquery)
                 try:
                     implyUser = data["context"]["implyUser"]
-                except ValueError:
+                except KeyError:
                     implyUser = ''
                 #outLine = [ logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, str(filterList), json.dumps(query)]
                 writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), implyUser, json.dumps(query)])
