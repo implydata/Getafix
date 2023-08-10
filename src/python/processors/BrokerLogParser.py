@@ -31,20 +31,31 @@ def main():
                 except:
                     continue
                 try:
-                     logTime = inLine[0].split()[5]
+                     logTime = inLine[0].split()[0]
                      logDate = datetime.datetime.strptime(logTime, "%Y-%m-%dT%H:%M:%S.%fZ")
                 except:
                      continue
                 if query['queryType'] == 'segmentMetadata':
                     continue
                 elif query['queryType'] == 'union':
-                    dataSource = "'" + query['query']['dataSource']['name'] + "'"
-                    queryId = query['query']['context']['queryId']
+                    dataSource = "'" + query['dataSource']['name'] + "'"
+                    queryId = query['context']['queryId']
+                    try:
+                        priority = query['context']['priority']
+                    except:
+                        priority = 'Null'
+                    intervals = query['intervals']['intervals']
+                elif query['queryType'] == 'groupBy':
+                    if query['dataSource']['type'] == 'union':
+                       dataSource = "'" + query['dataSource']['dataSources'][0]['name'] + "|" + query['dataSource']['dataSources'][1]['name'] + "'"
+                    else:
+                       dataSource = "'" + query['dataSource']['name'] + "'"
+                    queryId = query['context']['queryId']
                     try:
                         priority = query['query']['context']['priority']
                     except:
                         priority = 'Null'
-                    intervals = query['query']['intervals']['intervals']
+                    intervals = query['intervals']['intervals']
                 else:
                     if query['dataSource']['type'] == 'table':
                         try:
