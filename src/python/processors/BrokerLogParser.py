@@ -22,7 +22,7 @@ def main():
     with open(options.inputFile, "r") as inFile:
         with open(options.outputFile, "w") as outFile:
             writer = csv.writer(outFile)
-            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "implyUser", "query"])
+            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "aggregations", "implyUser", "query"])
             tsv_file = csv.reader(inFile, delimiter = "\t")
             for inLine in tsv_file:
                 try:
@@ -77,6 +77,12 @@ def main():
                 except:
                     continue
                 #print(str(filterList))
+                aggregationsList = []
+                try:
+                    for aggregations in query['aggregations']:
+                        aggregationsList.append(aggregations['type'].replace('"',''))
+                except:
+                    continue
                 try:
                     intervalStart = datetime.datetime.strptime(interval.split('/')[0], "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
@@ -97,7 +103,7 @@ def main():
                 except KeyError:
                     implyUser = ''
                 #outLine = [ logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, str(filterList), json.dumps(query)]
-                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), implyUser, json.dumps(query)])
+                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
 
 if __name__ == '__main__':
     main()   
