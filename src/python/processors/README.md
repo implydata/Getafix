@@ -24,3 +24,5 @@ do
 ./BrokerLogParser.py -i $i -o blp/$(basename $i).csv
 done
 ```
+
+OR Use RunOnFolder.py
