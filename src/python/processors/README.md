@@ -25,4 +25,4 @@ do
 done
 ```
 
-OR Use RunOnFolder.py
+OR Use ```RunOnFolder.py```
