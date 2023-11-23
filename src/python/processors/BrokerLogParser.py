@@ -63,8 +63,11 @@ def main():
                         priority = query['context']['priority']
                     except:
                         priority = 'Null'
-                    intervals = query['intervals']['intervals']
-                interval = intervals[0]
+                    try:
+                        intervals = query['intervals']['intervals']
+                        interval = intervals[0]
+                    except:
+                        interval = ''
                 filterList = []
                 try:
                     if query['filter']['type'] == 'selector' or query['filter']['type'] == 'regex':
