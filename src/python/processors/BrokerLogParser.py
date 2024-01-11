@@ -16,6 +16,7 @@ def checkOptions():
 
     return options
 
+
 def main():
     global options
     options = checkOptions()
@@ -78,7 +79,10 @@ def main():
                     elif query['filter']['type'] == 'and' or query['filter']['type'] == 'or':
                         for filters in query['filter']['fields']:
                             try:
-                                filterList.append(filters['dimension'].replace('"',''))
+                                if filters['type'] == 'selector':
+                                    filterList.append(filters['dimension'].replace('"',''))
+                                elif filters['type'] == 'not':
+                                    filterList.append(filters['field']['dimension'].replace('"',''))
                             except:
                                 if options.debug:
                                     print('Filter Exception:', filters)
@@ -86,7 +90,9 @@ def main():
                                 continue
                 except:
                     continue
-                #print(str(filterList))
+                filterList = list(dict.fromkeys(filterList))
+                if options.debug:
+                    print(str(filterList))
                 aggregationsList = []
                 try:
                     for aggregations in query['aggregations']:
