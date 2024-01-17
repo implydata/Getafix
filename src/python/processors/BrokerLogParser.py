@@ -11,9 +11,11 @@ def checkOptions():
     parser = argparse.ArgumentParser(description = 'Broker log query parser')
     parser.add_argument('-i', '--inputFile', required=True, action='store', type=str, dest='inputFile', help='Source Broker log file')
     parser.add_argument('-o', '--outputFile', required=True, action='store', dest='outputFile', help='Output csv file')
+    parser.add_argument('-d', '--debug', action='store_true', dest='debug', help='Extra debugging')
     options = parser.parse_args()
 
     return options
+
 
 def main():
     global options
@@ -76,10 +78,21 @@ def main():
                         filterList.append(query['filter']['dimensions'].replace('"',''))
                     elif query['filter']['type'] == 'and' or query['filter']['type'] == 'or':
                         for filters in query['filter']['fields']:
-                            filterList.append(filters['dimension'].replace('"',''))
+                            try:
+                                if filters['type'] == 'selector':
+                                    filterList.append(filters['dimension'].replace('"',''))
+                                elif filters['type'] == 'not':
+                                    filterList.append(filters['field']['dimension'].replace('"',''))
+                            except:
+                                if options.debug:
+                                    print('Filter Exception:', filters)
+                                filterList.append(json.dumps(filters))
+                                continue
                 except:
                     continue
-                #print(str(filterList))
+                filterList = list(dict.fromkeys(filterList))
+                if options.debug:
+                    print(str(filterList))
                 aggregationsList = []
                 try:
                     for aggregations in query['aggregations']:
