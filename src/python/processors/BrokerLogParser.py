@@ -65,11 +65,30 @@ def main():
                         priority = query['context']['priority']
                     except:
                         priority = 'Null'
+                    
+                    intervalStart = 0
+                    intervalEnd = 0
+                    
                     try:
                         intervals = query['intervals']['intervals']
-                        interval = intervals[0]
-                    except:
-                        interval = ''
+                        if intervals and len(intervals) > 0:
+                            interval = intervals[0]
+                            interval_parts = interval.split('/')
+
+                            if len(interval_parts) >= 1:
+                                try:
+                                    intervalStart = datetime.datetime.strptime(interval.split('/')[0], "%Y-%m-%dT%H:%M:%S.%fZ")
+                                except ValueError:
+                                    pass
+                        
+                            if len(interval_parts) >= 2:
+                                try:
+                                    intervalEnd = datetime.datetime.strptime(interval.split('/')[1], "%Y-%m-%dT%H:%M:%S.%fZ")
+                                except (ValueError, IndexError):
+                                    pass
+                    except (KeyError, IndexError):
+                        pass
+
                 filterList = []
                 try:
                     if query['filter']['type'] == 'selector' or query['filter']['type'] == 'regex':
