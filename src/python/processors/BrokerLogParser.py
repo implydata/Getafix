@@ -24,7 +24,7 @@ def main():
     with open(options.inputFile, "r") as inFile:
         with open(options.outputFile, "w") as outFile:
             writer = csv.writer(outFile)
-            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "aggregations", "implyUser", "query"])
+            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "aggregations", "implyUser", "dimensions", "query"])
             tsv_file = csv.reader(inFile, delimiter = "\t")
             for inLine in tsv_file:
                 try:
@@ -91,9 +91,24 @@ def main():
                                     print('Filter Exception:', filters)
                                 filterList.append(json.dumps(filters))
                                 pass
+                
                 except:
                     pass
                 filterList = list(dict.fromkeys(filterList))
+
+                dimensionList = []
+                try:
+                    # GroupBy queries
+                    for dimensions in query['dimensions']:
+                        dimensionList.append(dimensions['dimension'])
+                except:
+                    pass
+                try:
+                    # TopN queries
+                    dimensionList.append(query['dimension']['dimension'])
+                except:
+                    pass
+                #print(query['queryType'], dimensionList)
                 #if options.debug:
                 #    print(str(filterList))
                 aggregationsList = []
@@ -122,7 +137,7 @@ def main():
                 except KeyError:
                     implyUser = ''
                 #outLine = [ logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, str(filterList), json.dumps(query)]
-                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
+                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), (', '.join(aggregationsList)), implyUser, (', '.join(dimensionList)), json.dumps(query)])
 
 if __name__ == '__main__':
     main()   
