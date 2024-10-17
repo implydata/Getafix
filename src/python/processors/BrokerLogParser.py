@@ -83,22 +83,25 @@ def main():
                                     filterList.append(filters['dimension'].replace('"',''))
                                 elif filters['type'] == 'not':
                                     filterList.append(filters['field']['dimension'].replace('"',''))
+                                    
+                                elif filters['type'] == 'equals':
+                                    filterList.append(filters['column'].replace('"',''))
                             except:
                                 if options.debug:
                                     print('Filter Exception:', filters)
                                 filterList.append(json.dumps(filters))
-                                continue
+                                pass
                 except:
-                    continue
+                    pass
                 filterList = list(dict.fromkeys(filterList))
-                if options.debug:
-                    print(str(filterList))
+                #if options.debug:
+                #    print(str(filterList))
                 aggregationsList = []
                 try:
                     for aggregations in query['aggregations']:
                         aggregationsList.append(aggregations['type'].replace('"',''))
                 except:
-                    continue
+                    pass
                 try:
                     intervalStart = datetime.datetime.strptime(interval.split('/')[0], "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
