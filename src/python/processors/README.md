@@ -6,7 +6,7 @@ Provides a .csv with 1 row per query
 
 ```
 ./BrokerLogParser.py -h
-usage: BrokerLogParser.py [-h] -i INPUTFILE -o OUTPUTFILE
+usage: BrokerLogParser.py [-h] -i INPUTFILE -o OUTPUTFILE [-p REGEX_PATTERN]
 
 Broker log query parser
 
