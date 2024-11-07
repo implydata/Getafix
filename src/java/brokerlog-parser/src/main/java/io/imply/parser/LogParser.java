@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.apache.druid.query.Query.GROUP_BY;
 import static org.apache.druid.query.Query.SCAN;
@@ -37,6 +39,8 @@ public class LogParser
   private static final int LG_K = 2;
   private static final String TGT_HLL_TYPE = "HLL_6";
   private static final boolean ROUND = true;
+  private String regex  = "(.*)\\s.*\\s(.*)\\s(.*)$";
+  private Pattern pattern =null;
 
   private Set<String> queryTypes = new LinkedHashSet<String>();
   private List<String> logLines;
@@ -45,12 +49,20 @@ public class LogParser
   //private SimpleDateFormat = new SimpleDateFormat("YYYY-MM-dd");
   private Logger logger ;
   private  ObjectMapper mapper ;
+   private Matcher matcher ;
   public LogParser(ObjectMapper mapper) throws IOException
   {
     logger = Logger.getLogger(this.getClass().getName());
     this.mapper = mapper;
-  }
 
+  }
+  public void setRegexPattern(String regex)
+  {
+    if(regex != null && regex.length() !=0){
+      this.regex = regex;
+    }
+    this.pattern = Pattern.compile(this.regex);
+  }
   public void setParseForQueryType(String types)
   {
     queryTypes.add(types);
@@ -73,30 +85,47 @@ public class LogParser
   {
     for (Iterator it = logIterator; it.hasNext(); ) {
       String logLine = (String) it.next();
-      if (logLine.contains("LoggingRequestLogger")) {
 
+      if (logLine.contains("{\"queryType")) {
+        Matcher matcher = pattern.matcher(logLine);
+        if(!matcher.find()) {
+          System.out.println( "Unable to match the pattern  " + pattern.pattern());
+        }
+//        int queryTimeIndex = logLine.indexOf("{\"query/time" );
+//        String queryTime =logLine.substring(queryTimeIndex +14 ,  logLine.indexOf(",",queryTimeIndex) );
         for (String type : queryTypes) {
           if (logLine.contains("queryType\":\""+type)) {
-            String date = logLine.substring(logLine.indexOf("LoggingRequestLogger -")+22 , logLine.indexOf("\t"));
-
+//            String date = logLine.substring(0, logLine.indexOf("\t"));
+            String date = matcher.group(1);
             Calendar cal = DatatypeConverter.parseDateTime(date.trim());
             DateTime dateTime = new DateTime(cal);
             String line =null;
-            if (logLine.indexOf("{\"queryType") > 0)
-              if (logLine.indexOf("{\"query/time") <=0){
-               logger.log(Level.WARN ,  "Unable to parse log line in "+logFile.getAbsolutePath() + " starting with  line " + logLine.substring(0, 60));
-              } else {
-                line = logLine.substring(logLine.indexOf("{\"queryType"), logLine.indexOf("{\"query/time"));
-              }
-            if (line == null)
+//            if (logLine.indexOf("{\"queryType") > 0)
+            if (matcher.group(2).length() >0)
+              line = matcher.group(2).trim();
+//              if (queryTimeIndex <=0){
+//               logger.log(Level.WARN ,  "Unable to parse log line in "+logFile.getAbsolutePath() + " starting with  line " + logLine.substring(0, 60));
+//              } else {
+//                line = logLine.substring(logLine.indexOf("{\"queryType"), queryTimeIndex);
+//              }
+            if (line == null || line.length() ==0)
               break;
             try {
               BaseQuery query = null;
               query = createQueryObject(line, type);
-
-              return new LogEntry(dateTime.toDate(), type, query);
+              long queryTimeVal = 0;
+              try{
+                String metric = matcher.group(3);
+                int queryTimeIndex = metric.indexOf("{\"query/time" ) ;
+                String queryTime =metric.substring(queryTimeIndex +14 ,  metric.indexOf(",",queryTimeIndex) );
+                queryTimeVal = Long.parseLong(queryTime);
+              }catch (Exception e){
+                System.out.println(" unable to parse execution time in  Line:" + line );
+                queryTimeVal = 0;
+              }
+              return new LogEntry(dateTime.toDate(), type, query, queryTimeVal);
             }
-            catch (JsonProcessingException e) {
+            catch (Exception e) {
               System.out.println(" Line:" + line );
               e.printStackTrace();
             }

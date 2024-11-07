@@ -51,6 +51,13 @@ public class LogParseCli
   SimpleDateFormat dateFormat = new SimpleDateFormat(OUTPUT_DATE_FORMAT);
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   private ObjectMapper mapper = null;
+
+  private static final int index_inputfile =0;
+  private static final int index_parsedfile =1;
+  private static final int index_regex =2;
+  private static final int index_accountId =3;
+  private static final int index_clusterId =4;
+
   static {
     NullHandling.initializeForTests();
   }
@@ -62,15 +69,15 @@ public class LogParseCli
       cli.init("");
 
       String implyCloudAccountId = "Unknown";
-      if (args.length > 2){
-        implyCloudAccountId = args[2];
+      if (args.length > cli.index_accountId){
+        implyCloudAccountId = args[index_accountId];
       }
       String clusterId = "default";
-      if (args.length > 3){
-        clusterId = args[3];
+      if (args.length > cli.index_clusterId){
+        clusterId = args[cli.index_clusterId];
       }
-      if(args[0] != null && args[1] != null )
-        cli.processInput(args[0],args[1],implyCloudAccountId,clusterId);
+      if(args[cli.index_inputfile] != null && args[cli.index_parsedfile] != null )
+        cli.processInput(args[cli.index_regex],args[index_inputfile],args[cli.index_parsedfile],implyCloudAccountId,clusterId);
     }
 
     public void init(String extnConfig ) throws JsonProcessingException
@@ -114,13 +121,14 @@ public class LogParseCli
       );
     }
 
-  public  void processInput(String input , String output,String implyCloudAccountId , String clusterId) throws Exception
+  public  void processInput(String regex, String input , String output,String implyCloudAccountId , String clusterId) throws Exception
   {
     LogParser logParser = new LogParser(mapper);
     logParser.setParseForQueryType(GROUP_BY);
     logParser.setParseForQueryType(SCAN);
     logParser.setParseForQueryType(TIMESERIES);
     logParser.setParseForQueryType(TOPN);
+    logParser.setRegexPattern(regex);
 
     File inputFile = new File(input);
     File outputFile = new File(output);
@@ -258,7 +266,7 @@ public class LogParseCli
 
   private void writeHeader(FileWriter parseDataWriter) throws IOException
   {
-    parseDataWriter.write( "eventtime,querytype,datasource," +
+    parseDataWriter.write( "eventtime,executiontime,querytype,datasource," +
                            "queryid,sqlqueryid,"+
                            "implyDataCube,implyFeature," +
                            "implyUser,implyView,"+
@@ -288,7 +296,7 @@ public class LogParseCli
      */
     // eventtime, querytype, datasource
     if(entry.query.getDataSource().getTableNames().toArray().length >0){
-      parseDataWriter.write(dateFormat.format(entry.eventTime) + "," + entry.type + "," + entry.query.getDataSource().getTableNames().toArray()[0] + "," +
+      parseDataWriter.write(dateFormat.format(entry.eventTime) + "," + entry.executionTime +"," + entry.type + "," + entry.query.getDataSource().getTableNames().toArray()[0] + "," +
                   // queryid,sqlqueryid
                   entry.query.getId() + "," + entry.query.getSqlQueryId() + "," +
                   // implyDataCube, implyFeature
