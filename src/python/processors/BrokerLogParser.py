@@ -96,26 +96,30 @@ def main():
                         pass
                 filterList = []
                 try:
-                    if query['filter']['type'] == 'selector' or query['filter']['type'] == 'regex':
-                        filterList.append(query['filter']['dimension'].replace('"',''))
-                    elif query['filter']['type'] == 'columnComparison':
-                        filterList.append(query['filter']['dimensions'].replace('"',''))
-                    elif query['filter']['type'] == 'and' or query['filter']['type'] == 'or':
-                        for filters in query['filter']['fields']:
+                    filter = query.get('filter')
+                    if filter and filter.get('type') == 'selector' or filter and filter.get('type') == 'regex':
+                        filterList.append(filter['dimension'].replace('"', ''))
+                    elif filter and filter.get('type') == 'columnComparison':
+                        filterList.append(filter['dimensions'].replace('"', ''))
+                    elif filter and filter.get('type') in ['and', 'or']:
+                        for filters in filter.get('fields', []):
                             try:
-                                if filters['type'] == 'selector':
-                                    filterList.append(filters['dimension'].replace('"',''))
-                                elif filters['type'] == 'not':
-                                    filterList.append(filters['field']['dimension'].replace('"',''))
+                                if filters.get('type') == 'selector':
+                                    filterList.append(filters['dimension'].replace('"', ''))
+                                elif filters.get('type') == 'not':
+                                    filterList.append(filters['field']['dimension'].replace('"', ''))
                             except KeyError:
                                 if options.debug:
                                     print('Filter Exception:', filters)
                                 filterList.append(json.dumps(filters))
                                 continue
-                
+
                     filterList = list(dict.fromkeys(filterList))
                 except KeyError:
+                    if options.debug:
+                        print("KeyError while processing 'filter'.")
                     pass
+
                 if options.debug:
                     print(str(filterList))
                 aggregationsList = []
