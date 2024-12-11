@@ -21,12 +21,15 @@ def checkOptions():
 def main():
     global options
     options = checkOptions()
+    parseLog(options.inputFile,options.outputFile,options.pattern, options.debug )
 
+
+def parseLog (input_path, output_path, pattern=None, debug=False):
     default_pattern = r'^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3})\s+(?P<log_level>\w+)\s+\[(?P<thread>.*?)\]\s+(?P<logger>[^\s]+)\s+-\s+(?P<query_timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<ip>\d+\.\d+\.\d+\.\d+)\s+(?P<query>\{.*\})\s+(?P<result>\{.*\})$'
-    log_pattern = re.compile(options.pattern if options.pattern else default_pattern)
+    log_pattern = re.compile(pattern if pattern else default_pattern)
 
-    with open(options.inputFile, "r") as inFile:
-        with open(options.outputFile, "w") as outFile:
+    with open(input_path, "r") as inFile:
+        with open(output_path, "w") as outFile:
             writer = csv.writer(outFile)
             writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "aggregations", "implyUser", "query"])
             for line in inFile:
@@ -109,18 +112,18 @@ def main():
                                 elif filters.get('type') == 'not':
                                     filterList.append(filters['field']['dimension'].replace('"', ''))
                             except KeyError:
-                                if options.debug:
+                                if debug:
                                     print('Filter Exception:', filters)
                                 filterList.append(json.dumps(filters))
                                 continue
 
                     filterList = list(dict.fromkeys(filterList))
                 except KeyError:
-                    if options.debug:
+                    if debug:
                         print("KeyError while processing 'filter'.")
                     pass
 
-                if options.debug:
+                if debug:
                     print(str(filterList))
                 aggregationsList = []
                 try:
