@@ -31,7 +31,7 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
     with open(input_path, "r") as inFile:
         with open(output_path, "w") as outFile:
             writer = csv.writer(outFile)
-            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters", "aggregations", "implyUser", "query"])
+            writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters","grouping", "aggregations", "implyUser", "query"])
             for line in inFile:
                 match = log_pattern.match(line)
                 if not match:
@@ -125,6 +125,19 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
 
                 if debug:
                     print(str(filterList))
+		
+		# Extracting dimensions
+                dimensionsList = []
+                try:
+                    if 'dimension' in query:
+                        if isinstance(query['dimension'], dict):
+                            dimensionsList.append(query['dimension']['dimension'])
+                        elif isinstance(query['dimension'], list):
+                            for dimension in query['dimension']:
+                                dimensionsList.append(dimension['dimension'])
+                except KeyError:
+                    pass
+
                 aggregationsList = []
                 try:
                     for aggregations in query['aggregations']:
@@ -150,7 +163,7 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
                     implyUser = data["context"]["implyUser"]
                 except KeyError:
                     implyUser = ''
-                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
+                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)),', '.join(dimensionsList), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
 
 if __name__ == '__main__':
     main()
