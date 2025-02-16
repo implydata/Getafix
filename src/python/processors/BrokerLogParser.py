@@ -25,14 +25,23 @@ def main():
 
 
 def parseLog (input_path, output_path, pattern=None, debug=False):
-    default_pattern = r'^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3})\s+(?P<log_level>\w+)\s+\[(?P<thread>.*?)\]\s+(?P<logger>[^\s]+)\s+-\s+(?P<query_timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<ip>\d+\.\d+\.\d+\.\d+)\s+(?P<query>\{.*\})\s+(?P<result>\{.*\})$'
+    default_pattern = r'^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2},\d{3})\s+(?P<log_level>\w+)\s+\[(?P<thread>.*?)\]\s+(?P<logger>[^\s]+)\s+-\s+(?P<query_timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\s+(?P<ip>\d+\.\d+\.\d+\.\d+)\s+(?P<result>\{.*\})\s+(?P<query>\{.*\})$'
     log_pattern = re.compile(pattern if pattern else default_pattern)
 
+    print('Broker log parser starting ...')
     with open(input_path, "r") as inFile:
+        print('Input file opened ...')
         with open(output_path, "w") as outFile:
+            print ('Output file opened')
             writer = csv.writer(outFile)
             writer.writerow(["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes", "success", "filters","grouping", "aggregations", "implyUser", "query"])
+            print ('Header written ...')
+            inputRows=0
+            parseableRows=0
+            skippedRows=0
+            processedRows=0
             for line in inFile:
+                inputRows += 1
                 match = log_pattern.match(line)
                 if not match:
                     continue
@@ -41,16 +50,20 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
                     queryResult = json.loads(match.group('result'))
                 except json.JSONDecodeError:
                     continue
+                parseableRows += 1
                 try:
                     logTime = match.group('query_timestamp')
                     logDate = datetime.datetime.strptime(logTime, "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
+                    skippedRows += 1
                     continue
                 try:
                     query['queryType']
                 except KeyError:
-                    continue    
+                    skippedRows += 1
+                    continue
                 if query['queryType'] == 'segmentMetadata':
+                    skippedRows += 1
                     continue
                 elif query['queryType'] == 'union':
                     dataSource = "'" + query['query']['dataSource']['name'] + "'"
@@ -152,8 +165,8 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
                     intervalEnd = datetime.datetime.strptime(interval.split('/')[1], "%Y-%m-%dT%H:%M:%S.%fZ")
                 except ValueError:
                     intervalEnd = datetime.datetime.strptime('9999-12-31T23:59:59.999Z', "%Y-%m-%dT%H:%M:%S.%fZ")
-                duration = intervalEnd - intervalStart
-                recency = logDate - intervalStart
+                duration = int(round((intervalEnd - intervalStart).total_seconds()))
+                recency = int(round((logDate - intervalStart).total_seconds()))
                 queryTime = queryResult['query/time']
                 queryBytes = queryResult['query/bytes']
                 success = queryResult['success']
@@ -163,7 +176,13 @@ def parseLog (input_path, output_path, pattern=None, debug=False):
                     implyUser = data["context"]["implyUser"]
                 except KeyError:
                     implyUser = ''
-                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, int(round(recency.total_seconds())), int(round(duration.total_seconds())), queryTime, queryBytes, success, (', '.join(filterList)),', '.join(dimensionsList), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
+                writer.writerow([logTime, query['queryType'], dataSource, queryId, priority, recency, duration, queryTime, queryBytes, success, (', '.join(filterList)),', '.join(dimensionsList), (', '.join(aggregationsList)), implyUser, json.dumps(query)])
+                processedRows += 1
+            print(f"Read {inputRows} rows from input file.")
+            print(f"Parseable {parseableRows} rows.")
+            print(f"Skipped {skippedRows} rows.")
+            print(f"Processed {processedRows} data rows.")
+            print('Done.')
 
 if __name__ == '__main__':
     main()
