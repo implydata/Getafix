@@ -1,0 +1,502 @@
+{
+  "name": "BLPDashboard",
+  "title": "BrokerLogParserDashboard",
+  "type": "dashboard2",
+  "readAccess": {
+    "access": "all"
+  },
+  "pages": [
+    {
+      "name": "page",
+      "label": "Overview",
+      "tiles": [
+        {
+          "name": "e8ab",
+          "type": "visualization",
+          "title": "Filters by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 4,
+            "x": 8
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "filters",
+                  "sortType": "measure",
+                  "direction": "descending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "7b1a4632-9d69-4de4-abf0-485d625e9e9a"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "7801",
+          "type": "visualization",
+          "title": "Datasource, Recency (days) by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 7,
+            "y": 6
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "datasource",
+                  "sortType": "measure",
+                  "direction": "descending"
+                },
+                {
+                  "dimension": "recency",
+                  "sortType": "dimension",
+                  "direction": "ascending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "656d92c9-4882-438b-95b5-0d021c41ad0e"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "t01",
+          "type": "visualization",
+          "title": "Datasource, Duration (days) by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 6
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "datasource",
+                  "sortType": "measure",
+                  "direction": "descending"
+                },
+                {
+                  "dimension": "duration",
+                  "sortType": "dimension",
+                  "direction": "ascending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "dee91d65-9556-40e6-a4ee-a5b3603df18b"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "158f",
+          "type": "visualization",
+          "title": "Query Time (secs) by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 4,
+            "x": 16
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "queryTime",
+                  "sortType": "dimension",
+                  "direction": "ascending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "cef535b0-c93e-47a1-af44-500ed03ffd9d"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "ccd9",
+          "type": "visualization",
+          "title": "Querytype by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 4,
+            "x": 16,
+            "y": 4
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "querytype",
+                  "sortType": "measure",
+                  "direction": "descending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "afe16286-2976-4bf2-9800-f7d2e7784e86"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "9bf2",
+          "type": "visualization",
+          "title": "Imply User by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 4,
+            "x": 8,
+            "y": 4
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "implyUser",
+                  "sortType": "measure",
+                  "direction": "descending"
+                }
+              ]
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "67bc02bf-bcf3-4ebf-ac65-381ee457bf9e"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "tceec",
+          "type": "visualization",
+          "title": "Imply View by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 5,
+            "x": 8,
+            "y": 8
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {},
+            "axesSplits": [
+              [
+                {
+                  "dimension": "JSON_VA-d64",
+                  "sortType": "measure",
+                  "direction": "descending"
+                }
+              ],
+              []
+            ],
+            "visualization": "table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "56625563-fc90-4de1-be7f-d0db3719a443"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        },
+        {
+          "name": "793f",
+          "type": "visualization",
+          "title": "Time by Number of Events",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 8,
+            "height": 5,
+            "x": 16,
+            "y": 8
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "axesSplits": [
+              [
+                {
+                  "dimension": "__time",
+                  "sortType": "dimension",
+                  "direction": "ascending"
+                }
+              ]
+            ],
+            "visualization": "line-chart",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "ee40bb1b-470c-481f-93d0-8b4642e22c18"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        }
+      ]
+    },
+    {
+      "name": "pageb6b6",
+      "label": "Details",
+      "tiles": [
+        {
+          "name": "2399",
+          "type": "visualization",
+          "title": "Overall",
+          "canExpand": true,
+          "description": "",
+          "position": {
+            "width": 24,
+            "height": 12
+          },
+          "facetEssence": {
+            "dataCube": "BrokerLogParser",
+            "timezone": "Etc/UTC",
+            "filter": {
+              "clauses": [
+                {
+                  "dimension": "__time",
+                  "action": "overlap",
+                  "dynamic": {
+                    "op": "timeRange",
+                    "operand": {
+                      "op": "ref",
+                      "name": "m"
+                    },
+                    "duration": "P1D",
+                    "step": -1,
+                    "bounds": "[)"
+                  }
+                }
+              ]
+            },
+            "visualization": "records-table",
+            "selectedMeasures": [
+              {
+                "measure": "count",
+                "id": "74143b7d-0d25-4c4d-bb63-45b8b7d41c4f"
+              }
+            ],
+            "pinnedDimensions": []
+          }
+        }
+      ]
+    }
+  ],
+  "defaultFilters": [
+    {
+      "dimension": "__time",
+      "name": "f4275",
+      "isMandatory": true,
+      "hasDefaultValues": true,
+      "defaultValues": {
+        "dimension": "__time",
+        "action": "overlap",
+        "dynamic": {
+          "op": "timeRange",
+          "operand": {
+            "op": "ref",
+            "name": "m"
+          },
+          "duration": "P1D",
+          "step": -7
+        }
+      }
+    },
+    {
+      "dimension": "queryTime",
+      "name": "f82fa"
+    },
+    {
+      "dimension": "success",
+      "name": "f9126"
+    },
+    {
+      "dimension": "datasource",
+      "name": "f0334"
+    }
+  ],
+  "pagesTile": "show"
+}

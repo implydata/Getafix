@@ -1,0 +1,165 @@
+{
+  "name": "BrokerLogParser",
+  "title": "BrokerLogParser",
+  "queryMode": "sql",
+  "source": {
+    "value": "demo-blp",
+    "connectionName": "druid",
+    "type": "direct"
+  },
+  "readAccess": {
+    "access": "all"
+  },
+  "downloadAccess": {
+    "access": "all"
+  },
+  "attributes": [
+    {
+      "name": "__time",
+      "type": "TIME",
+      "nativeType": "__time",
+      "range": {
+        "start": "2023-11-20T03:23:37.696Z",
+        "end": "2023-11-21T15:15:33.966Z",
+        "bounds": "[]"
+      }
+    }
+  ],
+  "dimensions": [
+    {
+      "name": "__time",
+      "title": "Time",
+      "formula": "t.\"__time\"",
+      "type": "TIME"
+    },
+    {
+      "name": "aggregations",
+      "title": "Aggregations",
+      "formula": "t.\"aggregations\"",
+      "type": "STRING"
+    },
+    {
+      "name": "datasource",
+      "title": "Datasource",
+      "formula": "t.\"datasource\"",
+      "type": "STRING"
+    },
+    {
+      "name": "duration",
+      "title": "Duration (days)",
+      "formula": "t.\"duration\"/(60*60*24)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "filters",
+      "title": "Filters",
+      "formula": "string_to_mv(t.\"filters\",',')",
+      "type": "STRING"
+    },
+    {
+      "name": "implyUser",
+      "title": "Imply User",
+      "formula": "t.\"implyUser\"",
+      "type": "STRING"
+    },
+    {
+      "name": "priority",
+      "title": "Priority",
+      "formula": "t.\"priority\"",
+      "type": "STRING"
+    },
+    {
+      "name": "query",
+      "title": "Query",
+      "formula": "t.\"query\"",
+      "type": "STRING"
+    },
+    {
+      "name": "queryBytes",
+      "title": "Query Bytes",
+      "formula": "t.\"queryBytes\"",
+      "type": "NUMBER"
+    },
+    {
+      "name": "queryTime",
+      "title": "Query Time (secs)",
+      "formula": "t.\"queryTime\"/1000",
+      "type": "NUMBER"
+    },
+    {
+      "name": "queryid",
+      "title": "Queryid",
+      "formula": "t.\"queryid\"",
+      "type": "STRING"
+    },
+    {
+      "name": "querytype",
+      "title": "Querytype",
+      "formula": "t.\"querytype\"",
+      "type": "STRING"
+    },
+    {
+      "name": "recency",
+      "title": "Recency (days)",
+      "formula": "t.\"recency\"/(60*60*24)",
+      "type": "NUMBER"
+    },
+    {
+      "name": "success",
+      "title": "Success",
+      "formula": "t.\"success\"",
+      "type": "STRING"
+    },
+    {
+      "name": "t__time-aca",
+      "title": "yyyy-mm",
+      "description": "yyyy-mm",
+      "formula": "t.\"__time\"",
+      "type": "STRING"
+    },
+    {
+      "name": "JSON_VA-d64",
+      "title": "ImplyViewTitle",
+      "formula": "JSON_VALUE(PARSE_JSON(t.\"query\"), '$.context.implyViewTitle')",
+      "type": "STRING"
+    }
+  ],
+  "measures": [
+    {
+      "name": "count",
+      "title": "Number of Events",
+      "formula": "COUNT(*)",
+      "numberStyle": {
+        "type": "si",
+        "leading": 1,
+        "minDecimals": 2,
+        "maxDecimals": 2,
+        "integer": true,
+        "abbreviationSpace": true
+      }
+    },
+    {
+      "name": "sum_recency",
+      "title": "Recency (days)",
+      "formula": "SUM(t.\"recency\") /(60*60*24)"
+    },
+    {
+      "name": "sum_duration",
+      "title": "Duration (days)",
+      "formula": "SUM(t.\"duration\")/(60*60*24)"
+    },
+    {
+      "name": "sum_queryTime",
+      "title": "Query Time (secs)",
+      "formula": "SUM(t.\"queryTime\")/1000"
+    },
+    {
+      "name": "sum_queryBytes",
+      "title": "Query Bytes",
+      "formula": "SUM(t.\"queryBytes\")"
+    }
+  ],
+  "specialTimeDimension": "__time",
+  "enforceTimeFilter": true,
+  "defaultRefreshRate": "PT5M"
+}

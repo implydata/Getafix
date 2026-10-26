@@ -7,10 +7,15 @@ Handles both the older (`query, stats`) and newer (`stats, query`) request log l
 subqueries/joins/unions, and plain or `.gz` files. segmentMetadata queries are skipped unless `--includeSegmentMetadata` is given.
 
 ```
-./BrokerLogParser.py -i INPUT [INPUT ...] -o OUTPUT [--sqlOutput FILE] [--noSql] [--includeSegmentMetadata] [-w WORKERS] [-q] [-d]
+./BrokerLogParser.py -i INPUT [INPUT ...] -o OUTPUT [-p REGEX_PATTERN] [--sqlOutput FILE] [--noSql] [--includeSegmentMetadata] [-w WORKERS] [-q] [-d]
 ```
 * Single file: `./BrokerLogParser.py -i broker.log -o broker.csv` (SQL queries go to `broker_sql.csv`)
 * Directory: `./BrokerLogParser.py -i broker -o blp` writes `blp/<file>.csv` per log file and `blp/sql/<file>.csv`, in parallel
+
+`-p` overrides line parsing with a regex that has named groups `query` and `result` (optionally `query_timestamp` and `ip`);
+by default the tab-separated request log fields are detected automatically. `parseLog()` can be imported to parse a single file.
+
+The `grouping` column lists the groupBy/topN dimensions (including subqueries).
 
 A summary (query counts, top datasources, SQL errors, slowest SQL queries) is printed at the end; `-q` suppresses it.
 

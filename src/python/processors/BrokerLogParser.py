@@ -9,12 +9,16 @@ Handles both request log layouts:
     timestamp \t remoteAddr \t nativeQuery \t queryStats          (older Druid)
     timestamp \t remoteAddr \t queryStats  \t nativeQuery         (newer Druid)
     timestamp \t remoteAddr \t "" \t queryStats \t sqlQuery        (SQL)
+
+A custom regex can be given with -p; it needs named groups 'query' and 'result' (stats), and optionally
+'query_timestamp' and 'ip'.
 """
 import os
 import sys
 import csv
 import json
 import gzip
+import re
 import argparse
 import datetime
 import collections
@@ -23,7 +27,7 @@ from multiprocessing import Pool
 csv.field_size_limit(sys.maxsize)
 
 NATIVE_HEADER = ["eventtime", "querytype", "datasource", "queryid", "priority", "recency", "duration", "queryTime", "queryBytes",
-                 "success", "filters", "aggregations", "implyUser", "dimensions", "query",
+                 "success", "filters", "grouping", "aggregations", "implyUser", "query",
                  # columns added after the original layout, kept at the end so existing ingestion specs still work
                  "sqlQueryId", "identity", "remoteAddr", "statusCode", "exception", "dataSourceType", "filterTypes", "metrics",
                  "columns", "granularity", "intervals", "numIntervals", "unboundedTime", "lane", "timeout", "implyDataCube", "implyFeature",
@@ -41,6 +45,8 @@ def checkOptions():
     parser.add_argument('-i', '--input', '--inputFile', required=True, nargs='+', dest='inputs', help='Source broker log file(s) or directory')
     parser.add_argument('-o', '--output', '--outputFile', required=True, dest='output',
                         help='Output csv file, or a directory (one csv per input file, SQL queries under <dir>/sql/)')
+    parser.add_argument('-p', '--pattern', required=False, action='store', type=str, dest='pattern',
+                        help='Regex pattern for log parsing (named groups: query, result, query_timestamp, ip)')
     parser.add_argument('--sqlOutput', dest='sqlOutput', help='SQL query csv when --output is a single file (default: <output>_sql.csv)')
     parser.add_argument('--noSql', action='store_true', dest='noSql', help='Do not write SQL query output')
     parser.add_argument('--includeSegmentMetadata', action='store_true', dest='includeSegmentMetadata',
@@ -189,8 +195,22 @@ def intervalStats(intervals, eventTime):
     return recency, (int(round(duration)) if bounded and intervals else '')
 
 
-def splitLine(line):
+def splitLine(line, pattern=None):
     """Returns (eventtime, remoteAddr, stats, payload) or None if the line is not a request log line."""
+    if pattern is not None:
+        match = pattern.match(line.rstrip('\r\n'))
+        if not match:
+            return None
+        groups = match.groupdict()
+        try:
+            first = json.loads(groups['result'])
+            second = json.loads(groups['query'])
+        except (ValueError, KeyError, TypeError):
+            return None
+        # stats/query are identified by content, so the group names can't get swapped
+        if 'queryType' in first or ('query' in first and 'success' not in first):
+            first, second = second, first
+        return groups.get('query_timestamp') or '', groups.get('ip') or '', first, second
     parts = line.rstrip('\r\n').split('\t')
     if len(parts) < 4 or not parts[-1].startswith('{') or not parts[-2].startswith('{'):
         return None
@@ -282,7 +302,7 @@ def nativeRow(eventTime, remoteAddr, stats, query, sourceFile, debug):
 
     return [eventTime, queryType, joinList(dsNames), context.get('queryId', query.get('id', '')), context.get('priority', 'Null'),
             recency, duration, stats.get('query/time', ''), stats.get('query/bytes', ''), stats.get('success', ''),
-            joinList(filterColumns), joinList(aggTypes), context.get('implyUser', ''), joinList(dimensions), json.dumps(query),
+            joinList(filterColumns), joinList(dimensions), joinList(aggTypes), context.get('implyUser', ''), json.dumps(query),
             context.get('sqlQueryId', ''), stats.get('identity', ''), remoteAddr, stats.get('statusCode', ''), stats.get('exception', ''),
             joinList(dsTypes), joinList(filterTypes), joinList(metrics), joinList(columns), granularity,
             ' '.join(intervals), len(intervals), '/'.join(unbounded), context.get('lane', ''), context.get('timeout', ''),
@@ -309,6 +329,7 @@ def parseFile(job):
     summary = collections.Counter()
     slowest = []
     sourceFile = os.path.basename(inputFile)
+    pattern = re.compile(opts['pattern']) if opts.get('pattern') else None
     sqlOut = open(sqlFile, 'w', newline='') if sqlFile else None
     sqlWriter = csv.writer(sqlOut) if sqlOut else None
     if sqlWriter and opts['writeHeader']:
@@ -319,7 +340,7 @@ def parseFile(job):
             writer.writerow(NATIVE_HEADER)
         for line in inFile:
             summary['lines'] += 1
-            parsed = splitLine(line)
+            parsed = splitLine(line, pattern)
             if parsed is None:
                 continue
             eventTime, remoteAddr, stats, payload = parsed
@@ -392,6 +413,13 @@ def printSummary(summary, slowest):
             print('  %8d  %s  %s' % (ms, sqlId, ' '.join(sql.split())[:120]))
 
 
+def parseLog(input_path, output_path, pattern=None, debug=False, sql_path=None, includeSegmentMetadata=False):
+    """Parse a single broker log file to csv. Returns the summary counter."""
+    opts = {'includeSegmentMetadata': includeSegmentMetadata, 'debug': debug, 'writeHeader': True, 'pattern': pattern}
+    summary, _ = parseFile((input_path, output_path, sql_path, opts))
+    return summary
+
+
 def main():
     global options
     options = checkOptions()
@@ -400,7 +428,8 @@ def main():
     if not inputFiles:
         sys.exit('No input files found')
 
-    opts = {'includeSegmentMetadata': options.includeSegmentMetadata, 'debug': options.debug, 'writeHeader': True}
+    opts = {'includeSegmentMetadata': options.includeSegmentMetadata, 'debug': options.debug, 'writeHeader': True,
+            'pattern': options.pattern}
     jobs = []
     if os.path.isdir(options.output) or len(inputFiles) > 1 or options.output.endswith(os.sep):
         # One csv per input file, as RunOnFolder.py used to produce
